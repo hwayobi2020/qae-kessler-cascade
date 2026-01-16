@@ -258,6 +258,60 @@ Total depth ≈ O(n × 2^(n/2))
 
 ---
 
+## Model Limitations (Important)
+
+### Reality vs Model
+
+**현실의 위성 충돌:**
+```
+- 10,000개 위성 중 이번 달에 0~N개 충돌 가능
+- 각 충돌마다 파편 수가 다름 (100개 ~ 10,000개)
+- 파편 궤도도 다 다름 (고도, 경사각, 이심률...)
+- 충돌 위치/각도에 따라 파편 분포가 달라짐
+```
+
+**우리 모델:**
+```
+"이번 스텝에 임계 충돌 발생했나?" → Yes/No (이진 분기)
+```
+
+### Path Explosion Structure
+
+각 스텝에서 이진 분기이므로:
+```
+Step 0:  1개 상태
+Step 1:  2개 경로 (충돌 O, 충돌 X)
+Step 2:  4개 경로
+Step n:  2^n 경로
+```
+
+100 × 100 식의 폭발이 아니라 **2^n**입니다.
+
+### When This Model Is Valid
+
+| Use Case | Valid? | Reason |
+|----------|--------|--------|
+| Threshold-based policy decisions | ✅ | "10년 내 cascade 확률 > X%면 규제" |
+| Monte Carlo 대비 속도 비교 | ✅ | PoC 목적 |
+| 정책 시뮬레이션 (수천 회 반복) | ✅ | 속도가 중요할 때 |
+| 실제 충돌 회피 시스템 | ❌ | KD-Tree + 궤도역학 필요 |
+| 정밀 파편 궤도 예측 | ❌ | 연속적 물리 시뮬레이션 필요 |
+
+### Academic Disclosure
+
+> "본 연구는 cascade 역학의 단순화된 이진 모델을 사용하며, 실제 궤도역학 시뮬레이션과의 통합은 향후 연구 과제로 남긴다."
+
+### What Would Be Needed for Production
+
+1. **연속적 파편 분포 모델**: 충돌 시 파편 수를 확률 분포로
+2. **궤도 역학 통합**: SGP4/SDP4 propagator와 결합
+3. **3D 공간 분포**: 고도/경사각별 밀도 추적
+4. **시간 해상도**: 월 단위가 아닌 분/시간 단위
+
+이 모델은 **"Kessler Syndrome의 확률적 특성을 QAE로 추정 가능한가?"**에 대한 **개념 증명(Proof of Concept)**입니다.
+
+---
+
 ## Files Created Today
 
 | File | Description |
